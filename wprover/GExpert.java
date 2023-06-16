@@ -26,6 +26,7 @@ import java.awt.datatransfer.*;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Locale;
 import java.util.Vector;
@@ -631,6 +632,7 @@ public class GExpert extends JFrame implements ActionListener, KeyListener, Drop
 
         if (f.isDirectory()) {
             File contents[] = f.listFiles();
+            Arrays.sort(contents);
             int n = contents.length - 1;
             for (int i = n; i >= 0; i--) {
                 if (contents[i].isDirectory()) {
@@ -768,6 +770,8 @@ public class GExpert extends JFrame implements ActionListener, KeyListener, Drop
         item = addAMenu(menu, "Save as Animated Image", null, this);
         addImageToItem(item);
         item = addAMenu(menu, "Save Proof as Animated Image", null, this);
+        addImageToItem(item);
+        item = addAMenu(menu, "Save GDD Proof as GraphViz File", null, this);
         addImageToItem(item);
 
         menu.addSeparator();
@@ -1236,7 +1240,12 @@ public class GExpert extends JFrame implements ActionListener, KeyListener, Drop
                 this.saveAFile(false);
             else this.saveAFile(true);
 
-        } else if (command.equals("Save as Text")) {
+        } else if (command.equalsIgnoreCase("Save GDD Proof as GraphViz File")) {
+            this.saveGDDProofAsGraphViz();
+            System.out.println("This feature is not yet fully implemented. Coming soon. Stay tuned!");
+        }
+
+        else if (command.equals("Save as Text")) {
             if (!need_save())
                 return;
 
@@ -1644,6 +1653,38 @@ public class GExpert extends JFrame implements ActionListener, KeyListener, Drop
             }
 
         }
+    }
+
+    private void saveGDDProofAsGraphViz() {
+        JFileChooser chooser = new JFileChooser();
+        chooser.setFileFilter(new JFileFilter("gv"));
+
+        String dr1 = getUserDir();
+        chooser.setCurrentDirectory(new File(dr1));
+
+        int result = chooser.showSaveDialog(this);
+        if (result == JFileChooser.CANCEL_OPTION) {
+            return;
+        }
+        String dr = getUserDir();
+        chooser.setCurrentDirectory(new File(dr));
+
+        File ff = chooser.getSelectedFile();
+        String p = ff.getPath();
+        if (!p.endsWith("gv") && !p.endsWith("GV")) {
+            p = p + ".gv";
+            ff = new File(p);
+        }
+        try {
+            DataOutputStream out = dp.openOutputFile(ff.getPath());
+            String program = PanelProve1.graphvizProgram;
+            out.writeBytes(program);
+            out.close();
+        } catch (Exception ee) {
+            ee.printStackTrace();
+        }
+
+
     }
 
     int[] parse2Int(String s) {

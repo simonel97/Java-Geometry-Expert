@@ -3,8 +3,8 @@ Font: Dialog # 0 # 14
 
 	* File Menu
 0# File 	# Datei
-1# New 		# Neu
-2# Open 	# Öffnen
+1# New 		# Neu # Erstelle eine neue Ansicht
+2# Open 	# Öffnen # Öffne eine Datei
 3# Save 	# Speichern
 4# Save as... 	# Speichern unter
 5# Save as PS 	# Speichern als PS
@@ -141,7 +141,7 @@ Font: Dialog # 0 # 14
 170 #	Translate # Verschieben
 171 #	Zoom-in # Einzoomen
 172 #	Zoom-out # Auszoomen
-173 #	Snap # 
+173 #	Snap # Fang
 174 #	Grid # Gitter
 175 #	LessGrid # Weniger Gitter
 176 #	MoreGrid # Mehr Gitter
@@ -150,7 +150,7 @@ Font: Dialog # 0 # 14
 179 #	FF # 
 180 #	FR # 
 181 #	autoshowstep # 
-182 #	animate_start #   
+182 #	animate_start #  Starte Animation
 	* End of ToolBar
 
 	* Assertion
@@ -163,7 +163,7 @@ Font: Dialog # 0 # 14
 206 #	Equal Angle # Gleicher Winkel
 207 #	Similiar Triangle # Ähnliches Dreieck
 208 #	Congruent Triangle # Kongruentes Dreieck
-209 #	Equalateral Triangle # Gleichseitiges Freieck
+209 #	Equalateral Triangle # Gleichseitiges Dreieck
 210 #	Bisect # Halbieren
 211 #	Tangent # Tangente
 212 #	Equal Product # Gleiches Produkt
@@ -537,3 +537,6 @@ Font: Dialog # 0 # 14
 
  
 	* Update Dialog 
+
+20001 # by HYP # laut Annahme
+20002 # because # weil

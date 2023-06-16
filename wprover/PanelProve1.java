@@ -221,7 +221,9 @@ public class PanelProve1 extends JTabbedPane implements ChangeListener {
 
         top = new PTNode("", null);
         tree = new JTree(top);
-        tree.putClientProperty("JTree.lineStyle", "Horizontal");
+        if (!drawStructure) {
+            tree.putClientProperty("JTree.lineStyle", "Horizontal");
+        }
         tree.getSelectionModel().setSelectionMode(TreeSelectionModel.
                 SINGLE_TREE_SELECTION);
         tree.setCellRenderer(new BookCellRenderer(4));
@@ -1521,19 +1523,52 @@ public class PanelProve1 extends JTabbedPane implements ChangeListener {
         }
     }
 
+    boolean drawStructure = true; // set this to false to get original behavior
+    public static String graphvizProgram = "";
+    public static String hypotheses = "";
+    // TODO: Add this as an option.
+
     private void createNodes(cond co, DefaultMutableTreeNode to) {
+
         PTNode node = null;
         node = new PTNode(co.getNo() + ". " + co.getText(), co);
         node.tlevel = true;
         to.add(node);
 
-        createSubNode(node, co);
-        if (co.nx != null) {
+        createSubNode(node, co, co);
+        if (!drawStructure && co.nx != null) {
             createNodes(co.nx, to);
         }
+
     }
 
-    private void createSubNode(DefaultMutableTreeNode node, cond co) {
+    String setNode(cond co) {
+        // We show not just the number of the node but also its description:
+        int rule = co.getRule();
+        System.out.println("Rule " + rule + " is used for node " + co.getNo());
+        String color = "yellow";
+        if (rule == 0) {
+            color = "cyan";
+        }
+        if (rule == 28) {
+            color = "green";
+        }
+        if (rule == 36) {
+            color = "white";
+        }
+        return co.getNo() + " [ label = \"" + co.getNo() + ") " + co.getText()
+                + "\", fillcolor = \"" + color + "\"];\n";
+    }
+
+    /* Search for a numbered condition in the main tree. */
+    private cond searchSubCond(cond co, int no) {
+        while (co.nx != null && co.nx.getNo() != no) {
+            co = co.nx;
+        }
+        return co.nx;
+    }
+
+    private void createSubNode(DefaultMutableTreeNode node, cond co, cond root) {
 
         if (co.vlist == null) {
             return;
@@ -1545,11 +1580,35 @@ public class PanelProve1 extends JTabbedPane implements ChangeListener {
             String st;
             if (num != 0) {
                 st = c.getNo() + ". " + c.getText();
+                // We put the connection between co and c in the GraphViz output:
+                if (drawStructure) {
+                    // It is possible to draw something on the arrow... but what? TODO...
+                    // To avoid multiple edges, we already set "strict".
+                    graphvizProgram += co.getNo() + " -> " + c.getNo() + ";\n";
+                }
             } else {
                 st = c.getText();
+                if (drawStructure) {
+                    // This is a leaf without numbering, we need a label. Let's use its text:
+                    graphvizProgram += co.getNo() + " -> \"" + st + "\";\n";
+                    // This may duplicate some entries, FIXME:
+                    hypotheses += "\"" + st + "\" [ fillcolor = pink, shape = oval, style = filled ];\n";
+                }
             }
-            DefaultMutableTreeNode nd = new PTNode(st, c);
+            cond leaf = searchSubCond(root, num);
+            DefaultMutableTreeNode nd;
+            if (!drawStructure || leaf == null) {
+                nd = new PTNode(st, c);
+            } else {
+                nd = new PTNode(st, leaf);
+            }
+
             node.add(nd);
+            if (drawStructure && num != 0) {
+                if (leaf != null) {
+                    createSubNode(nd, leaf, root);
+                }
+            }
         }
     }
 
@@ -1585,7 +1644,33 @@ public class PanelProve1 extends JTabbedPane implements ChangeListener {
         top.setUserObject("To Prove :" + co);
 
         ((DefaultTreeModel) (tree.getModel())).reload();
+
+        if (drawStructure) {
+            // We don't want multiple edges:
+            graphvizProgram = "strict digraph G {\n";
+            // We create yellow boxes:
+            graphvizProgram += "node [shape = box, color = black, style = filled];\n";
+            // We set the direction for the arrows reversed:
+            graphvizProgram += "edge [dir = back];\n";
+            // Reset hypotheses:
+            hypotheses = "";
+        }
+
         createNodes(co, top);
+
+        if (drawStructure) {
+            // At the end of the GraphViz file we give a detailed definition for each
+            // step of the proof:
+            while (co.nx != null) {
+                graphvizProgram += setNode(co);
+                co = co.nx;
+            }
+            // For the last node we add the missing information:
+            graphvizProgram += setNode(co);
+            graphvizProgram += hypotheses;
+            graphvizProgram += "}\n";
+        }
+
         tree.expandRow(0);
 
         int n = top.getChildCount();
